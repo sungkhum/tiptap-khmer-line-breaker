@@ -39,8 +39,9 @@
   margin-right: 0.5px;
 }
 
-/* Non-standard spelling underline (blue) */
-.grammar-nonstandard {
+/* Non-standard spelling underline (blue) — higher specificity to override spell check */
+.grammar-nonstandard,
+.grammar-nonstandard.spellcheck-misspelled {
   text-decoration-line: underline;
   text-decoration-style: wavy;
   text-decoration-color: #4a7fc4;

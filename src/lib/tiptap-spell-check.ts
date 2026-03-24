@@ -137,6 +137,8 @@ export const SpellCheckExtension = Extension.create<SpellCheckOptions>({
       ignoredWords: new Set<string>(),
       ready: false,
       _cleanup: null as (() => void) | null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      grammarRules: null as any,
     }
   },
 
@@ -149,11 +151,15 @@ export const SpellCheckExtension = Extension.create<SpellCheckOptions>({
     const editor = this.editor
 
     // Share the breaker from the word break extension so both use
-    // the exact same dictionary and segmentation. Fall back to creating
-    // our own if the word break extension isn't loaded.
+    // the exact same dictionary and segmentation.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const wordBreakStorage = (editor.extensionStorage as any).khmerWordBreak
     const sharedBreaker = wordBreakStorage?.breaker as KhmerBreaker | null
+
+    // Reference grammar rules so spell check can skip non-standard words
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const grammarStorage = (editor.extensionStorage as any).multipleSpellings
+    this.storage.grammarRules = grammarStorage || null
 
     if (sharedBreaker) {
       this.storage.breaker = sharedBreaker
@@ -251,7 +257,7 @@ export const SpellCheckExtension = Extension.create<SpellCheckOptions>({
             if (!storage.enabled) return DecorationSet.empty
 
             if (meta?.results) {
-              return buildSpellDecorations(newState.doc, storage.misspelled, storage.ignoredWords, storage.breaker)
+              return buildSpellDecorations(newState.doc, storage.misspelled, storage.ignoredWords, storage.breaker, storage.grammarRules?.rules)
             }
 
             if (tr.docChanged) {
@@ -393,7 +399,8 @@ function getWordsForSpellCheck(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildSpellDecorations(doc: any, misspelled: Map<string, boolean>, ignoredWords: Set<string>, breaker: KhmerBreaker | null): DecorationSet {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildSpellDecorations(doc: any, misspelled: Map<string, boolean>, ignoredWords: Set<string>, breaker: KhmerBreaker | null, grammarRules?: Map<string, unknown> | null): DecorationSet {
   const decorations: Decoration[] = []
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -406,6 +413,8 @@ function buildSpellDecorations(doc: any, misspelled: Map<string, boolean>, ignor
     for (const w of words) {
       if (!isCheckableWord(w.word)) continue
       if (ignoredWords.has(w.word)) continue
+      // Skip words handled by grammar checker (non-standard spellings)
+      if (grammarRules?.has(w.word)) continue
       if (!misspelled.get(w.word)) continue
 
       decorations.push(
@@ -434,9 +443,11 @@ async function doSpellCheck(view: any, storage: any) {
     if (!hasKhmerLetters(text)) return
 
     const words = getWordsForSpellCheck(text, storage.breaker)
+    const grammarRules = storage.grammarRules?.rules as Map<string, unknown> | undefined
     for (const w of words) {
       if (!isCheckableWord(w.word)) continue
       if (storage.ignoredWords.has(w.word)) continue
+      if (grammarRules?.has(w.word)) continue  // handled by grammar checker
       wordsToCheck.add(w.word)
     }
   })
