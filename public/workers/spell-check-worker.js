@@ -5,8 +5,8 @@
  * Accepts configurable dictionary URL for multi-language support.
  */
 
-// Import browser-compatible SymSpell
-import { SymSpell, Verbosity } from '/lib/symspell-browser.js';
+// Import browser-compatible SymSpell (relative path works from /workers/)
+import { SymSpell, Verbosity } from '../lib/symspell-browser.js';
 
 // ============================================================================
 // State
