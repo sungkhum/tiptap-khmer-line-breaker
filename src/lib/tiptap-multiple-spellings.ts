@@ -67,9 +67,12 @@ function hasKhmerLetters(text: string): boolean {
 }
 
 /**
- * Extract words from text using ZWSP and whitespace as delimiters.
+ * Extract words from text for grammar checking.
+ *
+ * If ZWSP is present (word breaks inserted), split on ZWSP boundaries.
+ * If no ZWSP, use the shared word breaker to segment unsegmented Khmer text.
  */
-function getWords(text: string): Array<{ word: string; from: number; to: number }> {
+function getWords(text: string, breaker: KhmerBreaker | null): Array<{ word: string; from: number; to: number }> {
   const words: Array<{ word: string; from: number; to: number }> = []
   let wordStart = -1
 
@@ -91,6 +94,30 @@ function getWords(text: string): Array<{ word: string; from: number; to: number 
     } else {
       if (wordStart < 0) wordStart = i
     }
+  }
+
+  // If no ZWSP in text and we have a breaker, use it to segment long Khmer runs
+  if (!text.includes(ZWSP) && breaker && words.length > 0) {
+    const expandedWords: Array<{ word: string; from: number; to: number }> = []
+    for (const w of words) {
+      if (hasKhmerLetters(w.word) && w.word.length > 6) {
+        const segs = breaker.getSegments(w.word)
+        let offset = w.from
+        for (const seg of segs) {
+          if (/^\s+$/.test(seg)) continue
+          const clean = seg.replace(/\u200B/g, '')
+          if (clean.length > 0) {
+            const idx = text.indexOf(seg, offset)
+            const from = idx >= 0 ? idx : offset
+            expandedWords.push({ word: clean, from, to: from + seg.length })
+            offset = from + seg.length
+          }
+        }
+      } else {
+        expandedWords.push(w)
+      }
+    }
+    return expandedWords
   }
 
   return words
@@ -125,6 +152,7 @@ export const MultipleSpellingsExtension = Extension.create<MultipleSpellingsOpti
     return {
       enabled: false,
       rules: null as Map<string, SpellingRule> | null,
+      breaker: null as KhmerBreaker | null,
       ready: false,
     }
   },
@@ -134,6 +162,11 @@ export const MultipleSpellingsExtension = Extension.create<MultipleSpellingsOpti
 
     this.storage.enabled = true
     const editor = this.editor
+
+    // Share breaker from word break extension
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wordBreakStorage = (editor.extensionStorage as any).khmerWordBreak
+    this.storage.breaker = wordBreakStorage?.breaker || null
 
     fetch(this.options.rulesUrl)
       .then(res => {
@@ -190,13 +223,13 @@ export const MultipleSpellingsExtension = Extension.create<MultipleSpellingsOpti
             if (!storage.enabled || !storage.ready || !storage.rules) return DecorationSet.empty
 
             if (meta?.check) {
-              return buildDecorations(newState.doc, storage.rules)
+              return buildDecorations(newState.doc, storage.rules, storage.breaker)
             }
 
             if (tr.docChanged) {
               // Map existing decorations through the change, then rebuild
               // (rebuild is cheap since it's just Map lookups)
-              return buildDecorations(newState.doc, storage.rules)
+              return buildDecorations(newState.doc, storage.rules, storage.breaker)
             }
 
             return oldSet
@@ -268,7 +301,7 @@ export const MultipleSpellingsExtension = Extension.create<MultipleSpellingsOpti
 })
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildDecorations(doc: any, rules: Map<string, SpellingRule>): DecorationSet {
+function buildDecorations(doc: any, rules: Map<string, SpellingRule>, breaker: KhmerBreaker | null): DecorationSet {
   const decorations: Decoration[] = []
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -277,7 +310,7 @@ function buildDecorations(doc: any, rules: Map<string, SpellingRule>): Decoratio
     const text = node.text as string
     if (!hasKhmerLetters(text)) return
 
-    const words = getWords(text)
+    const words = getWords(text, breaker)
     for (const w of words) {
       const rule = rules.get(w.word)
       if (rule && rule.standard !== w.word) {
