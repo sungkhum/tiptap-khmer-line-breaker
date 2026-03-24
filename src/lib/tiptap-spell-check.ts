@@ -107,6 +107,8 @@ export interface SpellCheckOptions {
   dictionaryUrl: string
   /** Full frequency dictionary URL (JSON format for the word breaker) */
   frequencyDictionaryUrl: string
+  /** SymSpell JS library URL (for dynamic import in worker) */
+  symspellUrl: string
   workerUrl: string
   debounceMs: number
   enabled: boolean
@@ -122,6 +124,7 @@ export const SpellCheckExtension = Extension.create<SpellCheckOptions>({
       language: 'km',
       dictionaryUrl: '/dictionaries/km_symspell_dictionary.txt',
       frequencyDictionaryUrl: '/dictionaries/km_frequency_dictionary.json',
+      symspellUrl: '/lib/symspell-browser.js',
       workerUrl: '/workers/spell-check-worker.js',
       debounceMs: 300,
       enabled: true,
@@ -175,6 +178,7 @@ export const SpellCheckExtension = Extension.create<SpellCheckOptions>({
       this.options.dictionaryUrl,
       `${this.options.language}_symspell`,
       this.options.workerUrl,
+      this.options.symspellUrl,
     )
 
     // Wait for word breaker's full dict to load (poll since it loads async)

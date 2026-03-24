@@ -10,6 +10,7 @@ export interface SpellCheckInitMessage {
   type: 'init'
   dictionaryUrl?: string
   cacheKey?: string
+  symspellUrl?: string
   debug?: boolean
 }
 
@@ -134,7 +135,7 @@ export class SpellCheckWorkerManager {
     this.debugMode = debugMode
   }
 
-  async init(dictionaryUrl?: string, cacheKey?: string, workerUrl = '/workers/spell-check-worker.js'): Promise<number> {
+  async init(dictionaryUrl?: string, cacheKey?: string, workerUrl = '/workers/spell-check-worker.js', symspellUrl?: string): Promise<number> {
     if (typeof window === 'undefined') {
       throw new Error('Worker can only be initialized in browser environment')
     }
@@ -157,6 +158,7 @@ export class SpellCheckWorkerManager {
       type: 'init',
       dictionaryUrl,
       cacheKey,
+      symspellUrl,
       debug: this.debugMode,
     } as SpellCheckInitMessage)
 

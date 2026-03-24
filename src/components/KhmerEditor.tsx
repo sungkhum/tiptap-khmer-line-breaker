@@ -65,6 +65,7 @@ export default function KhmerEditor() {
         language: 'km',
         dictionaryUrl: `${BASE_PATH}/dictionaries/km_symspell_dictionary.txt`,
         frequencyDictionaryUrl: `${BASE_PATH}/dictionaries/km_frequency_dictionary.json`,
+        symspellUrl: `${BASE_PATH}/lib/symspell-browser.js`,
         workerUrl: `${BASE_PATH}/workers/spell-check-worker.js`,
         debounceMs: 300,
         enabled: true,

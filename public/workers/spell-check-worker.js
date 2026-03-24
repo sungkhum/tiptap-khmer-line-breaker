@@ -5,8 +5,9 @@
  * Accepts configurable dictionary URL for multi-language support.
  */
 
-// Import browser-compatible SymSpell (relative path works from /workers/)
-import { SymSpell, Verbosity } from '../lib/symspell-browser.js';
+// SymSpell is loaded dynamically via init message to handle basePath correctly
+let SymSpell = null;
+let Verbosity = null;
 
 // ============================================================================
 // State
@@ -236,15 +237,26 @@ function batchCheckWords(words) {
 // ============================================================================
 
 self.onmessage = function(e) {
-  const { type, word, words, requestId, debug, dictionaryUrl, cacheKey } = e.data;
+  const { type, word, words, requestId, debug, dictionaryUrl, cacheKey, symspellUrl } = e.data;
 
   if (type === 'init') {
     if (debug !== undefined) {
       debugMode = debug;
     }
-    const url = dictionaryUrl || '/dictionaries/km_symspell_dictionary.txt';
-    const key = cacheKey || 'km_symspell';
-    initDictionary(url, key);
+
+    // Dynamically import SymSpell using the URL provided by the main thread
+    // This handles basePath correctly for GitHub Pages etc.
+    const libUrl = symspellUrl || '../lib/symspell-browser.js';
+    import(libUrl).then((mod) => {
+      SymSpell = mod.SymSpell;
+      Verbosity = mod.Verbosity;
+      const url = dictionaryUrl || '/dictionaries/km_symspell_dictionary.txt';
+      const key = cacheKey || 'km_symspell';
+      initDictionary(url, key);
+    }).catch((err) => {
+      console.error('[SpellCheck] Failed to load SymSpell module:', err);
+      self.postMessage({ type: 'error', error: 'Failed to load SymSpell: ' + err.message });
+    });
     return;
   }
 
