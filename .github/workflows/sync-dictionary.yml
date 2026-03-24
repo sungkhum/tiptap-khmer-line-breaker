@@ -1,0 +1,58 @@
+name: Sync Dictionary from Aksara
+
+# This workflow is triggered by the Aksara repo's sync action.
+# It can also be triggered manually or on a schedule as a fallback.
+on:
+  repository_dispatch:
+    types: [dictionary-updated]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v5
+
+      - name: Checkout Aksara
+        uses: actions/checkout@v5
+        with:
+          repository: sungkhum/aksara
+          token: ${{ secrets.AKSARA_PAT }}
+          path: aksara-source
+
+      - name: Copy dictionary files
+        run: |
+          cp aksara-source/public/dictionaries/km_frequency_dictionary.json \
+             public/dictionaries/km_frequency_dictionary.json
+
+          cp aksara-source/lib/khmer-dictionary-data.ts \
+             src/lib/khmer-dictionary-data.ts
+
+          cp aksara-source/lib/khmer-affixes.ts \
+             src/lib/khmer-affixes.ts
+
+          cp aksara-source/lib/khmer-titles.json \
+             src/lib/khmer-titles.json
+
+          rm -rf aksara-source
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/dictionaries/km_frequency_dictionary.json \
+                  src/lib/khmer-dictionary-data.ts \
+                  src/lib/khmer-affixes.ts \
+                  src/lib/khmer-titles.json
+          if git diff --staged --quiet; then
+            echo "No dictionary changes to sync"
+          else
+            git commit -m "sync: update Khmer dictionaries from Aksara
+
+          Source: sungkhum/aksara@${{ github.event.client_payload.sha || 'manual' }}"
+            git push
+          fi

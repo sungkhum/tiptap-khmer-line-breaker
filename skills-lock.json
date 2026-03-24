@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "skills": {
+    "code-review": {
+      "source": "sungkhum/agent-skills-pack",
+      "sourceType": "github",
+      "computedHash": "ff3bc4b1d4f6cee5ff9da716a47906263f9af6721501abfed21eb99181d42f52"
+    },
+    "copy-review": {
+      "source": "sungkhum/agent-skills-pack",
+      "sourceType": "github",
+      "computedHash": "95591bfa17908a39ff5702354a4fdd680f890589349c489cdd56cc93da01ca8d"
+    },
+    "create-ux-design": {
+      "source": "sungkhum/agent-skills-pack",
+      "sourceType": "github",
+      "computedHash": "dc0c0fa373c4faa68a0729a4c2e1959826dd71f0972de16fa99d79cc89d48907"
+    },
+    "domain-research": {
+      "source": "sungkhum/agent-skills-pack",
+      "sourceType": "github",
+      "computedHash": "ac5810f95fdbfba15f7e5621a2dcd18b472b8975a2211526b698c8cb7c323ad1"
+    },
+    "edge-case-hunter": {
+      "source": "sungkhum/agent-skills-pack",
+      "sourceType": "github",
+      "computedHash": "4361944558e73e4a158799b42d673c7ef65f68d7884a79d4d6218c5f63cb9670"
+    },
+    "market-research": {
+      "source": "sungkhum/agent-skills-pack",
+      "sourceType": "github",
+      "computedHash": "91db828ba20a93d15327fcae86755e0793bfe721beac66ef75599c0faee7f267"
+    },
+    "tech-writer": {
+      "source": "sungkhum/agent-skills-pack",
+      "sourceType": "github",
+      "computedHash": "9282b6bda864c03ed882def9109c4f307ed007ab7c6d83b7c2a2dadd743f97e9"
+    },
+    "ux-designer": {
+      "source": "sungkhum/agent-skills-pack",
+      "sourceType": "github",
+      "computedHash": "360e0487b4e485338f5fd8be50f61c834aa27738fa8402b3f9b66c8c264c225a"
+    }
+  }
+}

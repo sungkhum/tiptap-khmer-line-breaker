@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #1a1a2e;
+  --color-ink-light: #4a4a6a;
+  --color-ink-muted: #8888a8;
+  --color-surface: #fafaf8;
+  --color-surface-warm: #f5f3ef;
+  --color-accent: #c4553a;
+  --color-accent-soft: #e8d5cf;
+  --color-success: #3a7d5c;
+  --color-success-soft: #d4e8dc;
+  --color-warn: #b8860b;
+  --color-warn-soft: #f0e6c8;
+}
+
+.tiptap {
+  outline: none;
+  min-height: 280px;
+  padding: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 2;
+  font-family: "Noto Sans Khmer", sans-serif;
+  color: var(--color-ink);
+}
+
+.tiptap p {
+  margin: 0.25em 0;
+}
+
+.tiptap:focus {
+  outline: none;
+}
+
+/* ZWSP markers — thin hairline pipe, minimal added width */
+.zwsp-visible .zwsp-marker {
+  padding: 0 0.5px;
+  border-right: 2px solid #bbb;
+  margin-right: 0.5px;
+}
+
+/* Spell check underline */
+.spellcheck-misspelled {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.spellcheck-misspelled:hover {
+  background-color: var(--color-accent-soft);
+}
+
+/* Suggestion popover */
+.spell-popover {
+  position: absolute;
+  z-index: 50;
+  background: white;
+  border: 1px solid #e0ddd8;
+  border-radius: 10px;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.06),
+    0 10px 20px -2px rgb(0 0 0 / 0.08),
+    0 0 0 1px rgb(0 0 0 / 0.02);
+  min-width: 180px;
+  max-width: 300px;
+  overflow: hidden;
+  animation: popover-in 0.15s ease-out;
+}
+
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spell-popover-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.95rem;
+  font-family: "Noto Sans Khmer", sans-serif;
+  color: var(--color-ink);
+  transition: background-color 0.1s;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.spell-popover-item:hover {
+  background-color: var(--color-surface-warm);
+}
+
+.spell-popover-item:active {
+  background-color: #ece8e2;
+}
