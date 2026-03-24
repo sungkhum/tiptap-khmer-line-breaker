@@ -12,6 +12,7 @@
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
+import type KhmerBreaker from './khmer-breaker'
 
 const ZWSP = "\u200B"
 

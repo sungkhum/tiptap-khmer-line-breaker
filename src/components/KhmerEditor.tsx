@@ -439,7 +439,10 @@ export default function KhmerEditor() {
         )}
         <span className="flex-1" />
         <span>
-          Click <span className="underline decoration-wavy" style={{ textDecorationColor: '#c4553a', textUnderlineOffset: '2px' }}>red underlines</span> for suggestions
+          <span className="underline decoration-wavy" style={{ textDecorationColor: '#c4553a', textUnderlineOffset: '2px' }}>Misspelled</span>
+          {' '}&middot;{' '}
+          <span className="underline decoration-wavy" style={{ textDecorationColor: '#4a7fc4', textUnderlineOffset: '2px' }}>Non-standard</span>
+          {' '}&mdash; click for suggestions
         </span>
       </div>
     </div>
