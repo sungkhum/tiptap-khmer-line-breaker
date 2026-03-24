@@ -8,6 +8,7 @@ import HardBreak from '@tiptap/extension-hard-break'
 import History from '@tiptap/extension-history'
 import { KhmerWordBreakExtension } from '@/lib/tiptap-khmer-word-break'
 import { SpellCheckExtension, spellCheckPluginKey } from '@/lib/tiptap-spell-check'
+import { MultipleSpellingsExtension } from '@/lib/tiptap-multiple-spellings'
 import { useState, useCallback, useEffect, useRef } from 'react'
 
 const BASE_PATH = process.env.NODE_ENV === 'production' ? '/tiptap-khmer-line-breaker' : ''
@@ -28,6 +29,15 @@ interface SuggestionState {
   y: number
 }
 
+interface GrammarSuggestionState {
+  word: string
+  standard: string
+  from: number
+  to: number
+  x: number
+  y: number
+}
+
 export default function KhmerEditor() {
   const [showZwsp, setShowZwsp] = useState(false)
   const [breakCount, setBreakCount] = useState(0)
@@ -35,6 +45,7 @@ export default function KhmerEditor() {
   const [spellCheckEnabled, setSpellCheckEnabled] = useState(true)
   const [spellCheckReady, setSpellCheckReady] = useState(false)
   const [suggestion, setSuggestion] = useState<SuggestionState | null>(null)
+  const [grammarSuggestion, setGrammarSuggestion] = useState<GrammarSuggestionState | null>(null)
   const editorWrapperRef = useRef<HTMLDivElement>(null)
 
   const editor = useEditor({
@@ -55,6 +66,10 @@ export default function KhmerEditor() {
         frequencyDictionaryUrl: `${BASE_PATH}/dictionaries/km_frequency_dictionary.json`,
         workerUrl: `${BASE_PATH}/workers/spell-check-worker.js`,
         debounceMs: 300,
+        enabled: true,
+      }),
+      MultipleSpellingsExtension.configure({
+        rulesUrl: `${BASE_PATH}/dictionaries/khmer-multiple-spellings.txt`,
         enabled: true,
       }),
     ],
@@ -96,7 +111,7 @@ export default function KhmerEditor() {
     return () => clearInterval(checkReady)
   }, [editor])
 
-  // Listen for suggestion events
+  // Listen for spell check suggestion events
   useEffect(() => {
     if (!editor) return
     const handleSuggestions = (e: Event) => {
@@ -104,6 +119,7 @@ export default function KhmerEditor() {
       if (!detail || !editorWrapperRef.current) return
       const coords = editor.view.coordsAtPos(detail.from)
       const wrapperRect = editorWrapperRef.current.getBoundingClientRect()
+      setGrammarSuggestion(null) // close grammar popover
       setSuggestion({
         word: detail.word,
         suggestions: detail.suggestions,
@@ -118,15 +134,44 @@ export default function KhmerEditor() {
     return () => editorDom.removeEventListener('spellcheck-suggestions', handleSuggestions)
   }, [editor])
 
-  // Close suggestions on click outside or Escape
+  // Listen for grammar (non-standard spelling) suggestion events
   useEffect(() => {
-    if (!suggestion) return
+    if (!editor) return
+    const handleGrammar = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail || !editorWrapperRef.current) return
+      const coords = editor.view.coordsAtPos(detail.from)
+      const wrapperRect = editorWrapperRef.current.getBoundingClientRect()
+      setSuggestion(null) // close spell popover
+      setGrammarSuggestion({
+        word: detail.word,
+        standard: detail.standard,
+        from: detail.from,
+        to: detail.to,
+        x: Math.min(coords.left - wrapperRect.left, wrapperRect.width - 200),
+        y: coords.bottom - wrapperRect.top + 6,
+      })
+    }
+    const editorDom = editor.view.dom
+    editorDom.addEventListener('grammar-suggestion', handleGrammar)
+    return () => editorDom.removeEventListener('grammar-suggestion', handleGrammar)
+  }, [editor])
+
+  // Close any popover on click outside or Escape
+  useEffect(() => {
+    if (!suggestion && !grammarSuggestion) return
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement
-      if (!target.closest('.spell-popover')) setSuggestion(null)
+      if (!target.closest('.spell-popover')) {
+        setSuggestion(null)
+        setGrammarSuggestion(null)
+      }
     }
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSuggestion(null)
+      if (e.key === 'Escape') {
+        setSuggestion(null)
+        setGrammarSuggestion(null)
+      }
     }
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleEscape)
@@ -134,7 +179,7 @@ export default function KhmerEditor() {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
     }
-  }, [suggestion])
+  }, [suggestion, grammarSuggestion])
 
   const handleInsertBreaks = useCallback(() => {
     if (!editor) return
@@ -189,6 +234,15 @@ export default function KhmerEditor() {
     }
     setSuggestion(null)
   }, [editor, suggestion])
+
+  const handleReplaceGrammar = useCallback((standard: string) => {
+    if (!editor || !grammarSuggestion) return
+    editor.chain()
+      .focus()
+      .insertContentAt({ from: grammarSuggestion.from, to: grammarSuggestion.to }, standard)
+      .run()
+    setGrammarSuggestion(null)
+  }, [editor, grammarSuggestion])
 
   const handleLoadSample = useCallback(() => {
     if (!editor) return
@@ -313,6 +367,38 @@ export default function KhmerEditor() {
                 className="spell-popover-item !text-xs !text-[#8888a8] hover:!text-[#4a4a6a]"
               >
                 Ignore this word
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Grammar suggestion popover (non-standard spelling) */}
+        {grammarSuggestion && (
+          <div
+            className="spell-popover"
+            style={{ left: grammarSuggestion.x, top: grammarSuggestion.y }}
+          >
+            <div
+              className="px-3 py-2 border-b border-[#e0ddd8]/60 flex items-center gap-2"
+              style={{ backgroundColor: '#fafaf8' }}
+            >
+              <span
+                className="font-medium text-sm"
+                style={{ fontFamily: '"Noto Sans Khmer", sans-serif', color: '#4a7fc4' }}
+              >
+                {grammarSuggestion.word}
+              </span>
+              <span className="text-[10px] text-[#8888a8] uppercase tracking-wider">
+                non-standard
+              </span>
+            </div>
+
+            <div className="py-1">
+              <button
+                onClick={() => handleReplaceGrammar(grammarSuggestion.standard)}
+                className="spell-popover-item"
+              >
+                {grammarSuggestion.standard}
               </button>
             </div>
           </div>
