@@ -79,13 +79,9 @@ public/
 4. Misspelled words get ProseMirror inline decorations (wavy underline)
 5. Click triggers `suggest()` — SymSpell returns edit-distance-1 matches sorted by frequency
 
-## Integration with Lectio
-
-This extension is designed for integration into [Lectio](https://github.com/sungkhum/lectio), a multi-language translation and editing platform. In Lectio, the word breaking and spell check activate based on a Khmer language flag — they don't run for other languages.
-
 ## Dictionary Sync
 
-Dictionaries originate in the [Aksara](https://github.com/sungkhum/aksara) codebase. When dictionaries are updated there, a GitHub Action automatically syncs them to this repo and to Lectio.
+Dictionaries originate in the [Aksara](https://github.com/sbbic-khmer/aksara-khmer-word-processor) codebase. When dictionaries are updated there, a GitHub Action automatically syncs them to this repo.
 
 ## Tech Stack
 
@@ -96,4 +92,4 @@ Dictionaries originate in the [Aksara](https://github.com/sungkhum/aksara) codeb
 
 ## License
 
-MIT
+MIT. The dictionaries build on SIL's [khmerlbdict](https://github.com/silnrsi/khmerlbdict) and the SBBIC Spelling Checker word list. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for credits and license texts.

@@ -7,6 +7,9 @@
  * Original: https://github.com/Ravikumar-Pawar/node-symspell-new
  * Based on: https://github.com/wolfgarbe/SymSpell
  * License: MIT
+ * Copyright (c) 2019 Mathieu Triay (node-symspell-new)
+ * Copyright (c) 2018 Wolf Garbe (SymSpell)
+ * See THIRD_PARTY_NOTICES for the full license text.
  */
 
 // ============================================================================

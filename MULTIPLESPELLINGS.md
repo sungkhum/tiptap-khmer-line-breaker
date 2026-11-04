@@ -368,4 +368,4 @@ For languages with established spelling standardization bodies (like Khmer's Bud
 
 ## Syncing
 
-The `khmer-multiple-spellings.txt` file is included in the GitHub Actions dictionary sync workflow. When it's updated in Aksara, it automatically syncs to both `sungkhum/lectio` and `sungkhum/tiptap-khmer-line-breaker`.
+The `khmer-multiple-spellings.txt` file is included in the GitHub Actions dictionary sync workflow. When it's updated in Aksara, it automatically syncs to this repo.
